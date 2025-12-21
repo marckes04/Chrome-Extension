@@ -1,35 +1,58 @@
 let myLeads = []
-
 const inputEl = document.getElementById("input-el")
 const inputBtn = document.getElementById("input-btn")
 const ulEl = document.getElementById("ul-el")
+const deleteBtn = document.getElementById("delete-btn")
+const leadsFromLocalStorage = JSON.parse(localStorage.getItem("myLeads"))
 
-//localStorage.setItem("myName", "Per Harald Borgen")
+const tabBtn = document.getElementById("tab-btn")
 
-//let name = localStorage.getItem("myName")
-localStorage.clear()
-let leadsFromLocalStorage = JSON.parse(localStorage.getItem("myLeads"))
+if (leadsFromLocalStorage) {
+    myLeads = leadsFromLocalStorage
+    render(myLeads)
+}
+
+
+tabBtn.addEventListener("click", function(){
+/*
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+
+        let activeTab = tabs[0];
+        let activeTabId = activeTab.id;
+    })*/
+        chrome.tabs.query({active:true, currentwindow:true}, function(tabs){
+        myLeads.push(tabs[0].url)
+        localStorage.setItem("myLeads", JSON.stringify(myLeads))
+        render(myLeads)
+
+        })
+}) ;
+
+function render(leads) {
+    let listItems = ""
+    for (let i = 0; i < leads.length; i++) {
+        listItems += `
+            <li>
+                <a target='_blank' href='${leads[i]}'>${leads[i]}</a>
+            </li>
+        `
+    }
+    ulEl.innerHTML = listItems
+}
+// FIX: Make sure the function name inside here matches your render function
+deleteBtn.addEventListener("click", function() {
+    localStorage.clear()      // Clears the database
+    myLeads = []              // Clears the array
+    render(myLeads)           // Clears the screen (Was renderLeads() before)
+})
 
 inputBtn.addEventListener("click", function() {
+    console.log("Button clicked!"); // Check if this shows in console
     if (inputEl.value) {
         myLeads.push(inputEl.value)
-        inputEl.value = "" // Clear the input field after saving
-
+        inputEl.value = "" 
         localStorage.setItem("myLeads", JSON.stringify(myLeads))
-        renderLeads()
+        render(myLeads)
     }
 })
 
-function renderLeads() {
-    let listItems = ""
-    for (let i = 0; i < myLeads.length; i++) {
-        // Corrected the template string/concatenation logic
-        listItems += `
-        <li>
-            <a target='_blank' href='${myLeads[i]}'>${myLeads[i]}</a>
-        </li>
-    `
-    }
-    // Added this line to update the DOM
-    ulEl.innerHTML = listItems
-}
